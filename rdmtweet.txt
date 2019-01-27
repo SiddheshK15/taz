@@ -1,0 +1,37 @@
+rdmTweets
+ (nDocs<- length(rdmTweets))
+rdmTweets[5:10]
+library(tm)
+library(twitteR)
+library(ROAuth)
+library(RCurl)
+library(bitops)
+library(digest)
+library(rjson)
+library(twitteR)
+df<- do.call("rbind", lapply(rdmTweets, as.data.frame))
+dim(df)
+myCorpus<- Corpus(VectorSource(df$text))
+myCorpus
+myCorpus<- tm_map(myCorpus, tolower)
+myCorpus<- tm_map(myCorpus, removePunctuation)
+myCorpus<- tm_map(myCorpus, removeNumbers)
+mycopyCorpus<- myCorpus
+myCorpus<- tm_map(myCorpus, stemDocument)
+inspect(myCorpus[1:5])
+myCorpus<- tm_map(myCorpus, stemCompletion, dictionary=mycopyCorpus)
+inspect(myCorpus[1:5])
+computingCases<- tm_map(myCorpus, grep, pattern="\\<computing")
+sum(unlist(computingCases))
+parallelCases<- tm_map(myCorpus, grep, pattern="\\<parallel")
+sum(unlist(parallelCases))
+myTdm<- TermDocumentMatrix(myCorpus, control=list(wordLengths=c(1,Inf)))
+myTdm
+idx<- which(dimnames(myTdm)$Terms == "r")
+inspect(myTdm[idx+(0:5),101:110])
+findFreqTerms(myTdm, lowfreq=10)
+termFrequency<- rowSums(as.matrix(myTdm))
+termFrequency<- subset(termFrequency, termFrequency>=10)
+termFrequency
+findAssocs(myTdm, 'r', 0.25)
+findAssocs(myTdm, 'the', 0.25)
